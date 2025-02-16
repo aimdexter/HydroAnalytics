@@ -27,13 +27,13 @@ const waterData = await launches2
 
 <!-- Country selector -->
 ```js
-const countrySelector = Inputs.select(
+const countrySelector = view(Inputs.select(
   [...new Set(waterData.map(d => d.Area))].sort(),
   {
     label: "Select Country",
     value: [...new Set(waterData.map(d => d.Area))][0]
   }
-);
+));
 ```
 
 <!-- Difine Colors -->
@@ -48,53 +48,50 @@ const colorData = Plot.scale({
 ```
 
 
-
+<!-- waterLineChart Graphic -->
 ```js
-// Line chart for selected country
-function waterLineChart(data, country, {width} = {}) {
-  const filteredData = data.filter(d => d.Area === country);
-  
+const currentChart = derived(countrySelector, (country) => ({
+  render: (width) => waterLineChart(waterData, country, {width})
+}));
+
+function waterLineChart(data, selectedCountry, {width} = {}) {
   return Plot.plot({
-    title: `Water Withdrawal by 10^9 m3/year for ${country}`,
+    title: `Water Withdrawal by 10^9 m3/year for ${selectedCountry}`,
     width,
     height: 500,
     y: {
       grid: true,
-      label: "Total Value (10^9 m3/year)"
+      label: "Total Value (10^9 m3/year)",
+      domain: [0, 100]
     },
     x: {
       label: "Year"
     },
     marks: [
-      Plot.line(filteredData, {
+      Plot.line(data.filter(d => d.Area === selectedCountry), {
         x: "Year",
         y: "Value",
         stroke: "Variable",
         strokeWidth: 2
       }),
-      Plot.dot(filteredData, {
+      Plot.dot(data.filter(d => d.Area === selectedCountry), {
         x: "Year",
         y: "Value",
         fill: "Variable",
         stroke: "white",
         strokeWidth: 1,
-        tip: {
-          format: {
-            y: ".1f"
-          }
-        }
+        tip: true
       }),
       Plot.ruleY([0])
     ],
     color: {
       legend: true,
-      domain: [...new Set(filteredData.map(d => d.Variable))],
       scheme: "tableau10"
     }
   });
 }
 ```
-
+// Display layout
 <div class="grid grid-cols-1">
   <div class="card">
     <h2>Selected Country</h2>
@@ -104,6 +101,6 @@ function waterLineChart(data, country, {width} = {}) {
 
 <div class="grid grid-cols-1">
   <div class="card">
-    ${resize((width) => waterLineChart(waterData, countrySelector.value, {width}))}
+    ${resize((width) => currentChart.value.render(width))}
   </div>
 </div>
