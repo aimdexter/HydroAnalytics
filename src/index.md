@@ -50,10 +50,11 @@ const colorData = Plot.scale({
 
 <!-- waterLineChart Graphic -->
 ```js
-const currentChart = derived(countrySelector, (country) => ({
-  render: (width) => waterLineChart(waterData, country, {width})
-}));
-
+const selectedCountryData = {
+  async value() {
+    return waterData.filter(d => d.Area === countrySelector);
+  }
+}
 function waterLineChart(data, selectedCountry, {width} = {}) {
   return Plot.plot({
     title: `Water Withdrawal by 10^9 m3/year for ${selectedCountry}`,
@@ -62,7 +63,6 @@ function waterLineChart(data, selectedCountry, {width} = {}) {
     y: {
       grid: true,
       label: "Total Value (10^9 m3/year)",
-      domain: [0, 100]
     },
     x: {
       label: "Year"
@@ -91,7 +91,7 @@ function waterLineChart(data, selectedCountry, {width} = {}) {
   });
 }
 ```
-// Display layout
+<!-- Display layout -->
 <div class="grid grid-cols-1">
   <div class="card">
     <h2>Selected Country</h2>
@@ -101,6 +101,6 @@ function waterLineChart(data, selectedCountry, {width} = {}) {
 
 <div class="grid grid-cols-1">
   <div class="card">
-    ${resize((width) => currentChart.value.render(width))}
-  </div>
+    ${resize((width) => waterLineChart(waterData, countrySelector, {width}))}
+      </div>
 </div>
