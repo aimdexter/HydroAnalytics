@@ -36,15 +36,22 @@ const countrySelector = view(
   })
 );
 const subgroupeSelector = view(
-  Inputs.select(["All", ...new Set(waterData.map((d) => d.Subgroup))].sort(), {
+  Inputs.select([...new Set(waterData.map((d) => d.Subgroup))].sort(), {
     label: "Select SubGroup",
-    value: "All", // Set a default value
+    value: "Water withdrawal by sector", // Set a default value
   })
 );
 const unitSelector = view(
-  Inputs.select(["All", ...new Set(waterData.map((d) => d.Unit))].sort(), {
+  Inputs.select([...new Set(waterData.map((d) => d.Unit))].sort(), {
     label: "Select Unit",
-    value: "All", // Set a default value
+    value: "10^9 m3/year", // Set a default value
+  })
+);
+
+const excludeEnvFlow = view(
+  Inputs.select(["True", "False"], {
+    label: "Exclude Environmental Flow Requirements",
+    value: "True", // Set a default value
   })
 );
 ```
@@ -80,16 +87,18 @@ function waterLineChart(
   selectedCountry,
   selectedSubgroup,
   selectedUnit,
+  excludeEnv,
   { width } = {}
 ) {
   const filteredData = data.filter(
     (d) =>
       d.Area === selectedCountry &&
       (selectedSubgroup === "All" || d.Subgroup === selectedSubgroup) &&
-      (selectedUnit === "All" || d.Unit === selectedUnit)
+      (selectedUnit === "All" || d.Unit === selectedUnit) &&
+      (excludeEnv != "True" || d.Variable !== "Environmental Flow Requirements")
   );
 
-  console.log(filteredData);
+  console.log(excludeEnv);
 
   const maxValue = Math.max(...filteredData.map((d) => d.Value));
   const yMax = Math.ceil(maxValue * 1.1);
@@ -151,10 +160,14 @@ function waterLineChart(
     <h2>Selected Unit</h2>
     <span class="big">${unitSelector}</span>
   </div>
+  <div class="card">
+    <h2>Selected Unit</h2>
+    <span class="big">${excludeEnvFlow}</span>
+  </div>
 </div>
 
 <div class="grid grid-cols-1">
   <div class="card">
-    ${resize((width) => waterLineChart(waterData, countrySelector, subgroupeSelector,unitSelector, {width}))}
+    ${resize((width) => waterLineChart(waterData, countrySelector, subgroupeSelector,unitSelector,excludeEnvFlow, {width}))}
       </div>
 </div>
